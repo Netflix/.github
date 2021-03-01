@@ -1,0 +1,11 @@
+{
+  "name": "Nebula NetflixOSS CI Workflow",
+  "description": "Nebula NetflixOSS: CI workflow template. Test against JDK 8 and 11",
+  "iconName": "gradle-logo",
+  "categories": [
+    "Gradle"
+  ],
+  "filePatterns": [
+    "build.gradle"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Nebula NetflixOSS Publishing Workflow",
+  "description": "Nebula NetflixOSS: Publishing to NetflixOSS and Maven Central workflow template.",
+  "iconName": "gradle-logo",
+  "categories": [
+    "Gradle"
+  ],
+  "filePatterns": [
+    "build.gradle"
+  ]
+}
