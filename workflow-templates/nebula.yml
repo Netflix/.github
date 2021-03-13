@@ -9,10 +9,17 @@ on:
   pull_request:
 
 jobs:
+  validation:
+    name: "Gradle Wrapper Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gradle/wrapper-validation-action@v1
   multijdk:
     if: |
       github.event_name == 'pull_request' ||
       ((!startsWith(github.ref, 'refs/tags/v')) && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main')
+    needs: validation
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -47,15 +54,9 @@ jobs:
     if: |
       github.event_name != 'pull_request' &&
       (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    needs: validation
     runs-on: ubuntu-latest
     name: Gradle Build and Publish
-    env:
-      NETFLIX_OSS_SONATYPE_USERNAME: ${{ secrets.ORG_SONATYPE_USERNAME }}
-      NETFLIX_OSS_SONATYPE_PASSWORD: ${{ secrets.ORG_SONATYPE_PASSWORD }}
-      NETFLIX_OSS_SIGNING_KEY: ${{ secrets.ORG_SIGNING_KEY }}
-      NETFLIX_OSS_SIGNING_PASSWORD: ${{ secrets.ORG_SIGNING_PASSWORD }}
-      NETFLIX_OSS_REPO_USERNAME: ${{ secrets.ORG_NETFLIXOSS_USERNAME }}
-      NETFLIX_OSS_REPO_PASSWORD: ${{ secrets.ORG_NETFLIXOSS_PASSWORD }}
     steps:
       - uses: actions/checkout@v1
       - name: Setup jdk 8
@@ -81,13 +82,32 @@ jobs:
       - name: Publish snapshot
         if: (!startsWith(github.ref, 'refs/tags/v'))
         run: ./gradlew build snapshot
+        env:
+          NETFLIX_OSS_SIGNING_KEY: ${{ secrets.ORG_SIGNING_KEY }}
+          NETFLIX_OSS_SIGNING_PASSWORD: ${{ secrets.ORG_SIGNING_PASSWORD }}
+          NETFLIX_OSS_REPO_USERNAME: ${{ secrets.ORG_NETFLIXOSS_USERNAME }}
+          NETFLIX_OSS_REPO_PASSWORD: ${{ secrets.ORG_NETFLIXOSS_PASSWORD }}
       - name: Publish candidate
         if: |
           startsWith(github.ref, 'refs/tags/v') &&
           contains(github.ref, '-rc.')
         run: ./gradlew -Prelease.useLastTag=true candidate
+        env:
+          NETFLIX_OSS_SONATYPE_USERNAME: ${{ secrets.ORG_SONATYPE_USERNAME }}
+          NETFLIX_OSS_SONATYPE_PASSWORD: ${{ secrets.ORG_SONATYPE_PASSWORD }}
+          NETFLIX_OSS_SIGNING_KEY: ${{ secrets.ORG_SIGNING_KEY }}
+          NETFLIX_OSS_SIGNING_PASSWORD: ${{ secrets.ORG_SIGNING_PASSWORD }}
+          NETFLIX_OSS_REPO_USERNAME: ${{ secrets.ORG_NETFLIXOSS_USERNAME }}
+          NETFLIX_OSS_REPO_PASSWORD: ${{ secrets.ORG_NETFLIXOSS_PASSWORD }}
       - name: Publish release
         if: |
           startsWith(github.ref, 'refs/tags/v') &&
           (!contains(github.ref, '-rc.'))
         run: ./gradlew -Prelease.useLastTag=true final
+        env:
+          NETFLIX_OSS_SONATYPE_USERNAME: ${{ secrets.ORG_SONATYPE_USERNAME }}
+          NETFLIX_OSS_SONATYPE_PASSWORD: ${{ secrets.ORG_SONATYPE_PASSWORD }}
+          NETFLIX_OSS_SIGNING_KEY: ${{ secrets.ORG_SIGNING_KEY }}
+          NETFLIX_OSS_SIGNING_PASSWORD: ${{ secrets.ORG_SIGNING_PASSWORD }}
+          NETFLIX_OSS_REPO_USERNAME: ${{ secrets.ORG_NETFLIXOSS_USERNAME }}
+          NETFLIX_OSS_REPO_PASSWORD: ${{ secrets.ORG_NETFLIXOSS_PASSWORD }}
