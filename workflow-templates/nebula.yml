@@ -77,8 +77,6 @@ jobs:
           key: ${{ runner.os }}-gradlewrapper-${{ hashFiles('gradle/wrapper/*') }}
           restore-keys: |
             - ${{ runner.os }}-gradlewrapper-
-      - name: docker test
-        run: docker --help
       - name: Publish snapshot
         if: (!startsWith(github.ref, 'refs/tags/v'))
         run: ./gradlew build snapshot
